@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yachay Lingua - Cyberpunk Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Librería ligera para Confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Orbitron (Futurista) y Rajdhani (Tecnológico) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-yellow: #f9c80e;
+            --bg-dark: #050505;
+            --card-dark: #121212;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+        }
+
+        h1, h2, h3, .font-cyber {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        /* --- Cyberpunk Effects --- */
+        .neon-box {
+            box-shadow: 0 0 5px var(--neon-cyan), inset 0 0 5px var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+        }
+        .neon-box-pink {
+            box-shadow: 0 0 5px var(--neon-pink), inset 0 0 5px var(--neon-pink);
+            border: 1px solid var(--neon-pink);
+        }
+        
+        .text-glow-cyan { text-shadow: 0 0 10px var(--neon-cyan); }
+        .text-glow-pink { text-shadow: 0 0 10px var(--neon-pink); }
+        .text-glow-yellow { text-shadow: 0 0 10px var(--neon-yellow); }
+        
+        /* --- Timer Animation --- */
+        .timer-bar {
+            transition: width 1s linear, background-color 1s linear, box-shadow 0.3s;
+        }
+
+        /* --- Kahoot Style Buttons (Cyberpunk Version) --- */
+        .kahoot-btn {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .kahoot-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* --- Puzzle Styles --- */
+        .puzzle-slot {
+            min-height: 80px;
+            background-color: #0f0f1a;
+            border: 2px dashed #444;
+            border-radius: 0.5rem;
+            display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;
+            align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
+        .puzzle-slot.active { border-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+        .puzzle-slot.wrong { border-color: #ef4444; box-shadow: 0 0 10px #ef4444; animation: shake 0.5s; }
+        
+        .word-chip {
+            background: #1f1f2e;
+            border: 1px solid #444;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.2rem;
+            cursor: pointer; font-weight: 700; font-size: 1.2rem;
+            color: #fff; user-select: none; transition: all 0.1s;
+            clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+        }
+        .word-chip:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 8px var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+        .word-chip.used { opacity: 0.3; pointer-events: none; border-color: transparent; box-shadow: none; }
+
+        /* --- Modales Cyberpunk --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: #0d0d0d; padding: 2rem; 
+            max-width: 450px; width: 95%; text-align: center; color: white;
+            transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(5, 217, 232, 0.2);
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .avatar-option { border: 2px solid #333; border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .avatar-option:hover { transform: scale(1.1); border-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+        .avatar-option.selected { border-color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); transform: scale(1.1); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-glitch { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; }
+
+        .btn-card { transition: all 0.2s ease; }
+        .btn-card:hover { transform: translateY(-4px); box-shadow: 0 0 15px var(--neon-cyan); border-color: var(--neon-cyan); }
+
+        /* Accesibilidad - Alto Contraste */
+        .high-contrast { filter: grayscale(100%) contrast(150%); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- NAVEGACIÓN SUPERIOR -->
+    <nav class="bg-black/80 border-b border-gray-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center cursor-pointer group" onclick="playSound('click'); router('home')">
+                    <!-- ICONO DE LLAMA -->
+                    <div class="text-4xl mr-2 transform -scale-x-100 group-hover:animate-bounce">🦙</div>
+                    <span class="font-bold text-2xl text-white tracking-widest ml-2 font-cyber group-hover:text-cyan-400 transition">YACHAY<span class="text-pink-500">_LINGUA</span></span>
+                </div>
+                <div id="gamification-bar" class="hidden md:flex items-center space-x-8">
+                    <div class="flex items-center group cursor-pointer relative" title="Vidas">
+                        <i class="fas fa-heart text-pink-500 text-2xl mr-2 drop-shadow-[0_0_8px_rgba(255,42,109,0.8)]"></i>
+                        <span id="stat-hearts" class="font-bold text-xl text-white font-cyber">5</span>
+                        <span id="heart-lang-indicator" class="ml-2 text-[10px] font-bold text-black bg-pink-500 px-2 py-0.5 rounded-sm uppercase tracking-wider">GEN</span>
+                    </div>
+                    <div class="flex items-center cursor-pointer hover:scale-110 transition" onclick="playSound('click'); openShop()" title="Tienda">
+                        <i class="fas fa-gem text-cyan-400 text-2xl mr-2 drop-shadow-[0_0_8px_rgba(5,217,232,0.8)]"></i>
+                        <span id="stat-coins" class="font-bold text-xl text-white font-cyber">0</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="playSound('click'); router('home')" class="p-2 text-gray-400 hover:text-cyan-400 md:hidden"><i class="fas fa-home text-xl"></i></button>
+                    <button onclick="playSound('click'); openMedalsModal()" class="hidden md:flex items-center px-4 py-2 text-sm font-bold text-yellow-400 border border-yellow-500/50 rounded hover:bg-yellow-500/10 transition font-cyber tracking-wide" title="Mis Logros"><i class="fas fa-medal mr-2"></i> LOGROS</button>
+                    <button onclick="playSound('click'); logout()" class="hidden md:flex items-center px-4 py-2 text-sm font-bold text-red-400 border border-red-500/50 rounded hover:bg-red-500/10 transition font-cyber tracking-wide" title="Salir"><i class="fas fa-sign-out-alt mr-2"></i> SALIR</button>
+                    <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-500/50 cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_10px_#05d9e8] transition" onclick="playSound('click'); openProfile()"><img id="nav-avatar" src="" alt="User" class="w-full h-full object-cover"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main id="app" class="flex-grow p-4 max-w-5xl mx-auto w-full relative z-10">
+        <!-- Contenido dinámico -->
+    </main>
+
+    <!-- 1. MODAL LOGIN -->
+    <div id="login-modal" class="fixed inset-0 bg-black z-[60] flex items-center justify-center p-4 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+        <div class="modal-content relative neon-box">
+            <h1 class="text-3xl font-black text-cyan-400 mb-8 text-glow-cyan">IDENTIFICACIÓN DE USUARIO</h1>
+            <div id="user-list" class="grid grid-cols-2 gap-4 mb-8"></div>
+            <button onclick="playSound('click'); showCreateUserForm()" class="flex flex-col items-center justify-center w-full p-4 rounded border border-dashed border-gray-600 text-gray-400 hover:border-pink-500 hover:text-pink-500 hover:bg-pink-500/10 transition group">
+                <i class="fas fa-plus text-3xl mb-2 group-hover:scale-125 transition"></i>
+                <span class="font-bold tracking-widest font-cyber">NUEVO RECLUTA</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. MODAL CREAR USUARIO -->
+    <div id="create-user-modal" class="fixed inset-0 bg-black z-[70] flex items-center justify-center p-4 hidden">
+        <div class="modal-content relative neon-box-pink">
+            <button onclick="playSound('click'); hideCreateUserForm()" class="absolute top-6 left-6 text-gray-500 hover:text-white text-xl"><i class="fas fa-arrow-left"></i></button>
+            <h2 class="text-3xl font-black text-pink-500 mb-2 text-glow-pink">CREAR PERFIL</h2>
+            <p class="text-gray-400 mb-8 text-sm uppercase tracking-widest">Ingresa tus datos en la base</p>
+            <div class="mb-8"><input type="text" id="new-user-name" placeholder="NOMBRE DE CÓDIGO" class="text-center w-full px-6 py-4 bg-gray-900 border border-gray-700 text-white focus:border-pink-500 focus:ring-0 text-xl font-bold outline-none transition font-cyber tracking-wider"></div>
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Selecciona Avatar</p>
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 max-w-lg mx-auto mb-8" id="avatar-grid"></div>
+            <button onclick="playSound('click'); registerNewUser()" class="w-full bg-pink-600 text-white font-black px-8 py-3 hover:bg-pink-500 transition font-cyber tracking-widest shadow-[0_0_15px_#ff2a6d]">INICIAR SISTEMA</button>
+        </div>
+    </div>
+
+    <!-- 3. MODAL DE TIENDA -->
+    <div id="shop-modal" class="modal-overlay">
+        <div class="modal-content relative bg-gray-900 border border-cyan-500/50">
+            <button onclick="playSound('click'); closeModal('shop-modal')" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-black text-cyan-400 mb-6 flex items-center justify-center text-glow-cyan"><i class="fas fa-shopping-cart mr-3"></i> MERCADO NEGRO</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-black/50 p-4 border border-gray-800 flex items-center justify-between hover:border-pink-500 transition">
+                    <div class="flex items-center"><i class="fas fa-heart-pulse text-pink-500 text-3xl mr-4 animate-pulse"></i><div class="text-left"><h3 class="font-bold text-white font-cyber">RECARGA INGLÉS</h3><p class="text-xs text-gray-500">Restaurar integridad del sistema.</p></div></div>
+                    <button onclick="playSound('click'); buyLives('ingles')" class="bg-cyan-900/30 text-cyan-400 border border-cyan-500 px-4 py-2 font-bold text-sm hover:bg-cyan-500 hover:text-black transition"><i class="fas fa-gem text-xs mr-1"></i> 50</button>
+                </div>
+                <div class="bg-black/50 p-4 border border-gray-800 flex items-center justify-between hover:border-yellow-500 transition">
+                    <div class="flex items-center"><i class="fas fa-heart-pulse text-yellow-500 text-3xl mr-4 animate-pulse"></i><div class="text-left"><h3 class="font-bold text-white font-cyber">RECARGA KICHWA</h3><p class="text-xs text-gray-500">Restaurar integridad del sistema.</p></div></div>
+                    <button onclick="playSound('click'); buyLives('kichwa')" class="bg-cyan-900/30 text-cyan-400 border border-cyan-500 px-4 py-2 font-bold text-sm hover:bg-cyan-500 hover:text-black transition"><i class="fas fa-gem text-xs mr-1"></i> 50</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODAL GAME OVER -->
+    <div id="game-over-modal" class="modal-overlay" style="z-index: 250;">
+        <div class="modal-content pop-in border-2 border-red-600 bg-black relative overflow-hidden">
+            <!-- Efecto Glitch de fondo -->
+            <div class="absolute inset-0 bg-red-900/10 z-0 animate-pulse"></div>
+            
+            <div class="relative z-10">
+                <div class="text-red-500 text-8xl mb-4 animate-bounce-short drop-shadow-[0_0_20px_rgba(220,38,38,0.8)]">
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+                <h2 class="text-4xl font-black text-red-500 mb-2 font-cyber text-glow-pink">SYSTEM FAILURE</h2>
+                <p class="text-white text-lg mb-8 uppercase tracking-widest">Tus vidas se han agotado.</p>
+                
+                <button onclick="playSound('click'); openShopFromGameOver()" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-black text-xl py-4 hover:from-blue-500 hover:to-cyan-400 transition shadow-[0_0_15px_#05d9e8] clip-path-polygon">
+                    <i class="fas fa-gem mr-2"></i> COMPRAR VIDAS
+                </button>
+                
+                <button onclick="playSound('click'); router('home'); closeModal('game-over-modal')" class="mt-4 text-gray-500 hover:text-white text-sm uppercase tracking-wider underline decoration-gray-700 hover:decoration-white">
+                    Volver al menú principal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. MODAL MEDALLAS -->
+    <div id="medals-modal" class="modal-overlay">
+        <div class="modal-content relative bg-gray-900 max-w-2xl border border-yellow-500/30">
+            <button onclick="playSound('click'); closeModal('medals-modal')" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-black text-yellow-400 mb-6 flex items-center justify-center font-cyber text-glow-yellow"><i class="fas fa-trophy mr-3"></i> SALÓN DE LA FAMA</h2>
+            <div id="medals-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- 6. MODAL RESULTADO (ACIERTO/FALLO LEVE) -->
+    <div id="result-modal" class="modal-overlay" style="z-index: 200;">
+        <div class="modal-content pop-in border-2 bg-gray-900" id="result-modal-content"></div>
+    </div>
+
+    <!-- 7. MODAL MEDALLA DESBLOQUEADA -->
+    <div id="medal-unlock-modal" class="fixed inset-0 bg-black/90 z-[250] hidden flex items-center justify-center p-4">
+        <div class="modal-content pop-in border-2 border-yellow-400 bg-gray-900 relative">
+            <div class="relative z-10">
+                <h2 class="text-3xl font-black text-yellow-400 mb-2 font-cyber tracking-widest">¡LOGRO OBTENIDO!</h2>
+                <div id="new-medal-icon" class="text-8xl mb-6 text-yellow-300 drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-bounce-short inline-block"></div>
+                <h3 id="new-medal-title" class="text-2xl font-bold text-white mb-2 font-cyber"></h3>
+                <p id="new-medal-desc" class="text-sm text-gray-400 mb-8 uppercase tracking-wide"></p>
+                <button onclick="playSound('click'); closeModal('medal-unlock-modal')" class="w-full bg-yellow-500 text-black font-black text-xl py-3 hover:bg-yellow-400 transition shadow-[0_0_15px_#f9c80e]">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. MODAL DIAMANTE (ACIERTO) -->
+    <div id="diamond-modal" class="modal-overlay" style="z-index: 200;">
+        <div class="modal-content pop-in border-2 border-cyan-500 bg-gray-900">
+            <div class="text-cyan-400 text-8xl mb-6 animate-bounce-short drop-shadow-[0_0_20px_#05d9e8]"><i class="fas fa-cube"></i></div>
+            <h2 class="text-4xl font-black text-white mb-2 font-cyber text-glow-cyan">CORRECTO</h2>
+            <div class="flex flex-col items-center justify-center mb-8">
+                <div class="text-cyan-300 text-3xl font-bold" id="diamond-xp-text">+15 XP</div>
+            </div>
+            <button onclick="playSound('click'); closeDiamondModal()" class="w-full bg-cyan-600 text-black font-black text-xl py-3 hover:bg-cyan-500 transition shadow-[0_0_15px_#05d9e8]">SIGUIENTE</button>
+        </div>
+    </div>
+
+    <!-- 9. MODAL RESUMEN FINAL -->
+    <div id="summary-modal" class="modal-overlay" style="z-index: 210;">
+        <div class="modal-content pop-in border-2 border-yellow-500 bg-gray-900">
+            <h2 class="text-3xl font-black text-yellow-400 mb-6 font-cyber">MISIÓN CUMPLIDA</h2>
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-black/50 p-4 border border-green-500/50"><p class="text-green-400 font-bold text-sm font-cyber">ACIERTOS</p><p id="summary-correct" class="text-4xl font-black text-white">0</p></div>
+                <div class="bg-black/50 p-4 border border-red-500/50"><p class="text-red-400 font-bold text-sm font-cyber">ERRORES</p><p id="summary-mistakes" class="text-4xl font-black text-white">0</p></div>
+            </div>
+            <button onclick="playSound('click'); finishLevel()" class="w-full bg-yellow-500 text-black font-black text-xl py-3 hover:bg-yellow-400 transition">VOLVER A LA BASE</button>
+        </div>
+    </div>
+
+    <!-- 10. MODAL ERROR (FALLO) -->
+    <div id="error-modal" class="modal-overlay" style="z-index: 200;">
+        <div class="modal-content pop-in border-b-8 border-red-600 bg-gray-900">
+            <div class="text-red-500 text-7xl mb-4 animate-shake drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]"><i class="fas fa-heart-broken"></i></div>
+            <h2 class="text-3xl font-black text-white mb-2" id="error-modal-title">¡Oh no!</h2>
+            <p class="text-gray-400 font-bold mb-6 text-xl" id="error-modal-desc">Perdiste 1 vida</p>
+            <button onclick="playSound('click'); retryCurrentQuestion()" class="w-full bg-red-600 text-white font-black text-xl py-4 rounded-2xl shadow-lg border-b-4 border-red-800 hover:bg-red-500 transition transform active:translate-y-1 active:border-b-0">REINTENTAR</button>
+        </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-content pop-in relative bg-gray-900 border border-gray-700">
+            <button onclick="playSound('click'); closeModal('feedback-modal')" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <h2 class="text-xl font-bold text-white mb-2 font-cyber">TRANSMITIR DATOS</h2>
+            <div class="rating-stars" id="feedback-stars"><i class="fas fa-star" onclick="setRating(1)"></i><i class="fas fa-star" onclick="setRating(2)"></i><i class="fas fa-star" onclick="setRating(3)"></i><i class="fas fa-star" onclick="setRating(4)"></i><i class="fas fa-star" onclick="setRating(5)"></i></div>
+            <textarea id="feedback-text" rows="3" class="w-full p-3 bg-black border border-gray-700 text-white mb-4 text-sm focus:border-cyan-500 outline-none" placeholder="Reporte de error..."></textarea>
+            <button onclick="playSound('click'); submitFeedback()" class="w-full bg-green-600 text-black font-bold py-3 hover:bg-green-500 transition">ENVIAR</button>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-black border-t border-gray-900 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-gray-600 text-sm">
+            <div class="mb-4 md:mb-0 font-cyber">&copy; 2026 YACHAY_LINGUA // ESPOCH_SYSTEMS</div>
+            <div class="flex space-x-6 text-xl">
+                <i class="fab fa-github hover:text-cyan-400 cursor-pointer transition hover:scale-125"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- LOGICA JAVASCRIPT -->
+    <script>
+        // --- AUDIO SYSTEM (SYNTH & MUSIC) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let musicInterval = null;
+        let noteIndex = 0;
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playSound(type) {
+            if (type === 'correct') { playTone(600, 'sine', 0.1); setTimeout(()=>playTone(800, 'sine', 0.2), 100); }
+            if (type === 'wrong') { playTone(300, 'sawtooth', 0.2); setTimeout(()=>playTone(200, 'sawtooth', 0.3), 200); }
+            if (type === 'click') { playTone(400, 'triangle', 0.05); }
+            if (type === 'gameover') { playTone(150, 'sawtooth', 0.5); setTimeout(()=>playTone(100, 'sawtooth', 0.8), 400); }
+            if (type === 'restore') { playTone(400, 'square', 0.1); setTimeout(()=>playTone(600, 'square', 0.2), 100); setTimeout(()=>playTone(800, 'square', 0.4), 200); }
+        }
+
+        // TETRIS-LIKE LOOP (Simplified Korobeiniki Theme)
+        const TETRIS_NOTES = [
+            659, 493, 523, 587, 523, 493, 440, 440, 523, 659, 587, 523, 493, 
+            523, 587, 659, 523, 440, 440, 0, 587, 698, 880, 783, 698, 659, 
+            523, 659, 587, 523, 493, 493, 523, 587, 659, 523, 440, 440
+        ];
+
+        function startMusic() {
+            if(musicInterval) clearInterval(musicInterval);
+            noteIndex = 0;
+            // Play a note every 250ms (adjust tempo)
+            musicInterval = setInterval(() => {
+                const freq = TETRIS_NOTES[noteIndex % TETRIS_NOTES.length];
+                if(freq > 0) playTone(freq, 'square', 0.1, 0.03); // Low volume square wave
+                noteIndex++;
+            }, 300);
+        }
+
+        function stopMusic() {
+            if(musicInterval) clearInterval(musicInterval);
+            musicInterval = null;
+        }
+
+        const MEDALLAS_DATA = [
+            { id: 'first_win', title: 'Iniciado', desc: 'Primer ejercicio completado', icon: 'fa-user-astronaut', color: 'text-blue-400' },
+            { id: 'speedster', title: 'Overclock', desc: 'Responde en < 5s', icon: 'fa-bolt', color: 'text-yellow-400' },
+            { id: 'rich', title: 'Magnate', desc: '100 Créditos acumulados', icon: 'fa-bitcoin', color: 'text-pink-500' },
+            { id: 'survivor', title: 'Blindado', desc: '5 aciertos seguidos', icon: 'fa-shield-alt', color: 'text-cyan-400' },
+            { id: 'scholar', title: 'Cyborg', desc: '500 XP Totales', icon: 'fa-brain', color: 'text-purple-500' }
+        ];
+
+        const contenido = {
+            ingles: {
+                titulo: "PROTOCOL: ENGLISH", descripcion: "Global Communication Uplink", icono: "fa-globe-americas", 
+                niveles: {
+                    basico: { titulo: "Nivel 1: Access", ejercicios: [
+                        {id: "ib1", tipo: "seleccion", pregunta: "Complete: I ___ ready.", respuesta: "am", opciones: ["is", "am", "are"], audio: "I am ready"},
+                        {id: "ib2", tipo: "puzzle", pregunta: "Ordena: 'Ella es de Ecuador'", respuesta: "She is from Ecuador", palabras: ["from", "She", "Ecuador", "is"], audio: "She is from Ecuador"},
+                        {id: "ib3", tipo: "seleccion", pregunta: "Negative: We ___ bots.", respuesta: "aren't", opciones: ["isn't", "aren't", "am not"], audio: "We aren't bots"},
+                        {id: "ib4", tipo: "seleccion", pregunta: "Greeting: 'Buenos días'", respuesta: "Good morning", opciones: ["Good night", "Good morning", "Hello"], audio: "Good morning"},
+                        {id: "ib5", tipo: "puzzle", pregunta: "Ordena: 'El sistema es rojo'", respuesta: "The system is red", palabras: ["is", "red", "The", "system"], audio: "The system is red"},
+                        {id: "ib6", tipo: "seleccion", pregunta: "Number: 5", respuesta: "Five", opciones: ["Fifteen", "Five", "Fifty"], audio: "Five"},
+                        {id: "ib7", tipo: "seleccion", pregunta: "Pronoun for 'Maria'", respuesta: "She", opciones: ["He", "She", "It"], audio: "She"},
+                        {id: "ib8", tipo: "puzzle", pregunta: "Ordena: 'Me gusta el código'", respuesta: "I like code", palabras: ["code", "like", "I"], audio: "I like code"},
+                        {id: "ib9", tipo: "seleccion", pregunta: "Plural of 'City'", respuesta: "Cities", opciones: ["Citys", "Cities", "Cityes"], audio: "Cities"},
+                        {id: "ib10", tipo: "seleccion", pregunta: "Color: Blue + Yellow = ?", respuesta: "Green", opciones: ["Green", "Purple", "Orange"], audio: "Green"}
+                    ]},
+                    intermedio: { titulo: "Nivel 2: Uplink", ejercicios: [
+                        {id: "ia1", tipo: "seleccion", pregunta: "Past of 'Go'", respuesta: "Went", opciones: ["Gone", "Went", "Goed"], audio: "Went"},
+                        {id: "ia2", tipo: "puzzle", pregunta: "Ordena: 'Ellos visitaron el nexo'", respuesta: "They visited the nexus", palabras: ["visited", "They", "nexus", "the"], audio: "They visited the nexus"},
+                        {id: "ia3", tipo: "seleccion", pregunta: "She ___ eat data.", respuesta: "didn't", opciones: ["don't", "didn't", "wasn't"], audio: "She didn't eat data"},
+                        {id: "ia4", tipo: "seleccion", pregunta: "Past of 'Buy'", respuesta: "Bought", opciones: ["Buyed", "Bought", "Bringing"], audio: "Bought"},
+                        {id: "ia5", tipo: "puzzle", pregunta: "Ordena: 'Yo vi un glitch'", respuesta: "I saw a glitch", palabras: ["saw", "I", "glitch", "a"], audio: "I saw a glitch"},
+                        {id: "ia6", tipo: "seleccion", pregunta: "Question: ___ you online?", respuesta: "Were", opciones: ["Was", "Did", "Were"], audio: "Were you online?"},
+                        {id: "ia7", tipo: "seleccion", pregunta: "Past of 'Eat'", respuesta: "Ate", opciones: ["Eated", "Ate", "Eaten"], audio: "Ate"},
+                        {id: "ia8", tipo: "puzzle", pregunta: "Ordena: 'Jugamos en la red'", respuesta: "We played on the net", palabras: ["net", "played", "We", "the", "on"], audio: "We played on the net"},
+                        {id: "ia9", tipo: "seleccion", pregunta: "Time: Past", respuesta: "Last week", opciones: ["Tomorrow", "Now", "Last week"], audio: "Last week"},
+                        {id: "ia10", tipo: "seleccion", pregunta: "Past of 'See'", respuesta: "Saw", opciones: ["Seed", "Saw", "Seen"], audio: "Saw"}
+                    ]},
+                    avanzado: { titulo: "Nivel 3: Neural Link", ejercicios: [
+                        {id: "ip1", tipo: "puzzle", pregunta: "Ordena: 'Si falla reinicio'", respuesta: "If it fails I reboot", palabras: ["reboot", "fails", "If", "I", "it"], audio: "If it fails I reboot"},
+                        {id: "ip2", tipo: "seleccion", pregunta: "Phrase: 'Bug in the system'", respuesta: "A problem", opciones: ["An insect", "A problem", "A feature"], audio: "A problem"},
+                        {id: "ip3", tipo: "seleccion", pregunta: "Complete: If I ___ admin...", respuesta: "were", opciones: ["am", "was", "were"], audio: "If I were admin"},
+                        {id: "ip4", tipo: "puzzle", pregunta: "Ordena: 'No hubiéramos estrellado'", respuesta: "We wouldn't have crashed", palabras: ["crashed", "have", "We", "wouldn't"], audio: "We wouldn't have crashed"},
+                        {id: "ip5", tipo: "seleccion", pregunta: "Synonym: 'Fast'", respuesta: "Rapid", opciones: ["Slow", "Rapid", "Heavy"], audio: "Rapid"},
+                        {id: "ip6", tipo: "seleccion", pregunta: "Passive Voice?", respuesta: "Data was sent", opciones: ["I sent data", "Data was sent", "Sending data"], audio: "Data was sent"},
+                        {id: "ip7", tipo: "puzzle", pregunta: "Ordena: 'Apenas entré cargó'", respuesta: "Scarcely had I entered when it loaded", palabras: ["loaded", "entered", "when", "Scarcely", "it", "I", "had"], audio: "Scarcely had I entered when it loaded"},
+                        {id: "ip8", tipo: "seleccion", pregunta: "Meaning: 'Piece of cake'", respuesta: "Very easy", opciones: ["Dessert", "Very easy", "Hard work"], audio: "Piece of cake"},
+                        {id: "ip9", tipo: "seleccion", pregunta: "Past Participle 'Write'", respuesta: "Written", opciones: ["Wrote", "Written", "Writing"], audio: "Written"},
+                        {id: "ip10", tipo: "seleccion", pregunta: "Tag: You are user, ___?", respuesta: "aren't you", opciones: ["are you", "aren't you", "don't you"], audio: "Aren't you"}
+                    ]}
+                }
+            },
+            kichwa: {
+                titulo: "PROTOCOLO: KICHWA", descripcion: "Conexión Ancestral", icono: "fa-sun", 
+                niveles: {
+                    basico: { titulo: "Nivel 1: Raíces", ejercicios: [
+                        {id: "kb1", tipo: "seleccion", pregunta: "Significado: 'Imanalla'", respuesta: "Hola / ¿Cómo estás?", opciones: ["Adios", "Hola / ¿Cómo estás?", "Buenas noches"], audio: "Imanalla"},
+                        {id: "kb2", tipo: "seleccion", pregunta: "Responde: 'Bien'", respuesta: "Ali", opciones: ["Mana Ali", "Ali", "Shuk"], audio: "Ali"},
+                        {id: "kb3", tipo: "puzzle", pregunta: "Ordena: 'Mi nombre es Maria'", respuesta: "Ñuka shutika Maria kan", palabras: ["kan", "Maria", "Ñuka", "shutika"], audio: "Ñuka shutika Maria kan"},
+                        {id: "kb4", tipo: "seleccion", pregunta: "Palabra: 'Nombre'", respuesta: "Shuti", opciones: ["Shuti", "Runa", "Wasi"], audio: "Shuti"},
+                        {id: "kb5", tipo: "puzzle", pregunta: "Ordena: 'Buenos días'", respuesta: "Ali punlla", palabras: ["punlla", "Ali"], audio: "Ali punlla"},
+                        {id: "kb6", tipo: "seleccion", pregunta: "Sufijo enfático (-ka)", respuesta: "Ñukaka", opciones: ["Ñukaka", "Ñukaman", "Ñukata"], audio: "Ñukaka"},
+                        {id: "kb7", tipo: "seleccion", pregunta: "'Hasta mañana'", respuesta: "Kayakama", opciones: ["Kayakama", "Tupananchik", "Imanalla"], audio: "Kayakama"},
+                        {id: "kb8", tipo: "puzzle", pregunta: "Ordena: 'Yo estoy bien'", respuesta: "Ñuka alimi kani", palabras: ["kani", "alimi", "Ñuka"], audio: "Ñuka alimi kani"},
+                        {id: "kb9", tipo: "seleccion", pregunta: "'Usted' (Formal)", respuesta: "Kiki", opciones: ["Kan", "Kiki", "Pay"], audio: "Kiki"},
+                        {id: "kb10", tipo: "seleccion", pregunta: "'Familia'", respuesta: "Ayllu", opciones: ["Ayllu", "Mashi", "Wasi"], audio: "Ayllu"}
+                    ]},
+                    intermedio: { titulo: "Nivel 2: Estructura", ejercicios: [
+                        {id: "ka1", tipo: "seleccion", pregunta: "'Olla'", respuesta: "Manka", opciones: ["Manka", "Wasi", "Punku"], audio: "Manka"},
+                        {id: "ka2", tipo: "puzzle", pregunta: "Ordena: 'La olla es grande'", respuesta: "Mankaka hatunmi kan", palabras: ["kan", "hatunmi", "Mankaka"], audio: "Mankaka hatunmi kan"},
+                        {id: "ka3", tipo: "seleccion", pregunta: "'Cocinar'", respuesta: "Yanuna", opciones: ["Yanuna", "Mikuna", "Upina"], audio: "Yanuna"},
+                        {id: "ka4", tipo: "seleccion", pregunta: "'Fuego'", respuesta: "Nina", opciones: ["Yaku", "Nina", "Allpa"], audio: "Nina"},
+                        {id: "ka5", tipo: "puzzle", pregunta: "Ordena: 'Yo cocino papas'", respuesta: "Ñuka papata yanuni", palabras: ["yanuni", "papata", "Ñuka"], audio: "Ñuka papata yanuni"},
+                        {id: "ka6", tipo: "seleccion", pregunta: "'Plato'", respuesta: "Mati", opciones: ["Mati", "Wislla", "Manka"], audio: "Mati"},
+                        {id: "ka7", tipo: "seleccion", pregunta: "'Cuchara'", respuesta: "Wislla", opciones: ["Wislla", "Kuchuna", "Manka"], audio: "Wislla"},
+                        {id: "ka8", tipo: "puzzle", pregunta: "Ordena: 'La comida es rica'", respuesta: "Mikunaka mishkimi kan", palabras: ["mishkimi", "kan", "Mikunaka"], audio: "Mikunaka mishkimi kan"},
+                        {id: "ka9", tipo: "seleccion", pregunta: "Objeto Directo (-ta)", respuesta: "Papata", opciones: ["Papata", "Papaman", "Papawan"], audio: "Papata"},
+                        {id: "ka10", tipo: "seleccion", pregunta: "'Comer'", respuesta: "Mikuna", opciones: ["Mikuna", "Pukllana", "Puñuna"], audio: "Mikuna"}
+                    ]},
+                    avanzado: { titulo: "Nivel 3: Sabiduría", ejercicios: [
+                        {id: "kp1", tipo: "seleccion", pregunta: "'Ayudar'", respuesta: "Yanapana", opciones: ["Yanapana", "Minga", "Rantina"], audio: "Yanapana"},
+                        {id: "kp2", tipo: "puzzle", pregunta: "Ordena: 'Trabajemos juntos'", respuesta: "Pakta llamkashun", palabras: ["llamkashun", "Pakta"], audio: "Pakta llamkashun"},
+                        {id: "kp3", tipo: "seleccion", pregunta: "'Ama Killa'", respuesta: "No ser ocioso", opciones: ["No mentir", "No ser ocioso", "No robar"], audio: "Ama Killa"},
+                        {id: "kp4", tipo: "puzzle", pregunta: "Ordena: 'Vivimos bien'", respuesta: "Alimi kawsanchik", palabras: ["kawsanchik", "Alimi"], audio: "Alimi kawsanchik"},
+                        {id: "kp5", tipo: "seleccion", pregunta: "Plural de 'Runa'", respuesta: "Runakuna", opciones: ["Runawan", "Runakuna", "Runaman"], audio: "Runakuna"},
+                        {id: "kp6", tipo: "seleccion", pregunta: "Pasado de 'Shamuna'", respuesta: "Shamurka", opciones: ["Shamuk", "Shamurka", "Shamun"], audio: "Shamurka"},
+                        {id: "kp7", tipo: "puzzle", pregunta: "Ordena: 'Mi madre me ama'", respuesta: "Ñuka mamaka ñukata kuyan", palabras: ["mamaka", "kuyan", "ñukata", "Ñuka"], audio: "Ñuka mamaka ñukata kuyan"},
+                        {id: "kp8", tipo: "seleccion", pregunta: "'Hatun Yachay Wasi'", respuesta: "Universidad", opciones: ["Escuela", "Universidad", "Colegio"], audio: "Universidad"},
+                        {id: "kp9", tipo: "seleccion", pregunta: "Verbo 'Saber'", respuesta: "Yachana", opciones: ["Yachana", "Rikuna", "Uyana"], audio: "Yachana"},
+                        {id: "kp10", tipo: "puzzle", pregunta: "Ordena: 'Vamos a aprender todos'", respuesta: "Tukuykuna yachakushun", palabras: ["yachakushun", "Tukuykuna"], audio: "Tukuykuna yachakushun"}
+                    ]}
+                }
+            }
+        };
+
+        // --- SISTEMA MULTI-USUARIO ---
+        let users = [];
+        let currentUser = null;
+        let selectedAvatar = "";
+        let timerInterval;
+        let timerState = {};
+        
+        let currentLevelQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentLanguage = "";
+        let sessionMistakes = 0;
+        let sessionCorrect = 0;
+
+        const AVATARS = [
+            "img/retrato-dibujos-animados-3d-persona-que-practica-profesion-relacionada-derecho_23-2151419477.avif",
+            "img/e6dc318f-f467-4e71-b76f-e99721b58d80.png",
+            "img/image_7544b1.png",
+            "img/image_75a624.png",
+            "https://api.dicebear.com/9.x/notionists/svg?seed=Felix",
+            "https://api.dicebear.com/9.x/notionists/svg?seed=Ana",
+            "https://api.dicebear.com/9.x/avataaars/svg?seed=Inti"
+        ];
+
+        window.onload = function() {
+            loadUsers();
+            if (users.length === 0) showCreateUserForm(true); 
+            else renderUserList();
+        };
+
+        function loadUsers() {
+            const data = localStorage.getItem('yachay_db_cyber');
+            if (data) users = JSON.parse(data);
+        }
+
+        function saveUsers() {
+            localStorage.setItem('yachay_db_cyber', JSON.stringify(users));
+        }
+
+        // --- USER MANAGEMENT ---
+        function renderUserList() {
+            const list = document.getElementById('user-list');
+            list.innerHTML = '';
+            users.forEach((user, index) => {
+                const imgErr = `this.src='https://ui-avatars.com/api/?name=${user.nombre}'`;
+                list.innerHTML += `
+                    <div onclick="playSound('click'); loginUser(${index})" class="bg-gray-800 hover:bg-gray-700 border-2 border-cyan-900 hover:border-cyan-400 rounded-lg p-4 cursor-pointer transition flex flex-col items-center group relative shadow-[0_0_10px_rgba(5,217,232,0.2)]">
+                        <img src="${user.avatar}" onerror="${imgErr}" class="w-20 h-20 rounded-full mb-3 object-cover border-2 border-gray-600 group-hover:border-cyan-400 transition bg-black">
+                        <h3 class="font-bold text-white text-lg font-cyber">${user.nombre}</h3>
+                        <p class="text-xs text-gray-400">LVL ${Math.floor(user.xp/100)+1}</p>
+                        <button onclick="event.stopPropagation(); playSound('click'); deleteUser(${index})" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            });
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('create-user-modal').classList.add('hidden');
+        }
+
+        function loginUser(index) {
+            currentUser = users[index];
+            if(!currentUser.medallas) currentUser.medallas = []; 
+            if(typeof currentUser.vidas === 'number') currentUser.vidas = { ingles: currentUser.vidas, kichwa: currentUser.vidas };
+            if(!currentUser.vidas) currentUser.vidas = { ingles: 5, kichwa: 5 };
+            currentUser.currentStreak = 0;
+            document.getElementById('login-modal').classList.add('hidden');
+            updateUI();
+            router('home');
+        }
+
+        function deleteUser(index) {
+            if(confirm("¿Eliminar datos de este usuario?")) {
+                users.splice(index, 1);
+                saveUsers();
+                if(users.length === 0) showCreateUserForm(true);
+                else renderUserList();
+            }
+        }
+
+        function logout() {
+            stopMusic(); // Stop music on logout
+            clearInterval(timerInterval);
+            currentUser = null;
+            renderUserList();
+            document.getElementById('app').innerHTML = "";
+            document.getElementById('gamification-bar').classList.add('hidden');
+        }
+
+        // --- CREATE USER ---
+        function showCreateUserForm(isFirst = false) {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('create-user-modal').classList.remove('hidden');
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = '';
+            selectedAvatar = AVATARS[0];
+            AVATARS.forEach((src, idx) => {
+                const img = document.createElement('img'); img.src = src;
+                img.className = `avatar-option w-20 h-20 rounded-full object-cover bg-black ${idx===0?'selected':''}`;
+                img.onclick = function() { 
+                    playSound('click');
+                    document.querySelectorAll('.avatar-option').forEach(el=>el.classList.remove('selected')); 
+                    this.classList.add('selected'); 
+                    selectedAvatar = src; 
+                };
+                img.onerror = function() { this.style.display='none'; };
+                grid.appendChild(img);
+            });
+            const backBtn = document.querySelector('#create-user-modal button.absolute');
+            if(isFirst) backBtn.classList.add('hidden'); else backBtn.classList.remove('hidden');
+        }
+
+        function hideCreateUserForm() {
+            document.getElementById('create-user-modal').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+
+        function registerNewUser() {
+            const name = document.getElementById('new-user-name').value.trim();
+            if(!name) { alert("¡Nombre requerido!"); return; }
+            const newUser = { nombre: name, avatar: selectedAvatar, xp: 0, monedas: 50, vidas: {ingles:5, kichwa:5}, racha: 1, progreso: {ingles:0, kichwa:0}, completados: [], medallas: [] };
+            users.push(newUser); saveUsers(); currentUser = newUser;
+            document.getElementById('create-user-modal').classList.add('hidden');
+            updateUI(); router('home');
+        }
+
+        // --- UI ---
+        function updateUI() {
+            if(!currentUser) return;
+            document.getElementById('nav-avatar').src = currentUser.avatar;
+            document.getElementById('gamification-bar').classList.remove('hidden');
+            document.getElementById('stat-coins').innerText = currentUser.monedas;
+            
+            const context = getCurrentContext();
+            const heartEl = document.getElementById('stat-hearts');
+            const heartLabel = document.getElementById('heart-lang-indicator');
+            if(context === 'home') { heartEl.innerText="-"; heartLabel.innerText="GEN"; }
+            else {
+                const vidas = currentUser.vidas[context];
+                heartEl.innerText = vidas;
+                heartLabel.innerText = context==='ingles'?"ING":"KICH";
+                if(vidas<=0) heartEl.classList.replace('text-red-500', 'text-gray-600');
+                else heartEl.classList.replace('text-gray-600', 'text-red-500');
+            }
+        }
+
+        let currentSection = 'home';
+        function router(page) {
+            window.scrollTo(0,0);
+            clearInterval(timerInterval); 
+            // Reset timers state on route change to be safe
+            for (let k in timerState) clearInterval(timerState[k].gameInterval);
+            
+            // Manage Music
+            if (page === 'home') stopMusic();
+            
+            currentSection = page; 
+            updateUI(); 
+            const app = document.getElementById('app'); app.innerHTML = "";
+            if(page === 'home') renderHome(app); else renderIntroScreen(app, page);
+        }
+        function getCurrentContext() { return currentSection; }
+
+        // --- RENDERERS ---
+        function renderHome(container) {
+            const p = Math.min(Math.round((currentUser.xp/1000)*100), 100);
+            container.innerHTML = `
+                <div class="fade-in space-y-8">
+                    <div class="bg-gray-900 border border-gray-800 rounded-none p-8 text-white shadow-2xl relative overflow-hidden neon-box">
+                        <div class="relative z-10 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-3xl font-black mb-1 font-cyber text-glow-cyan">HOLA, ${currentUser.nombre}</h2>
+                                <p class="text-gray-400 mb-4 text-sm font-bold tracking-widest">ESTADO: OPERATIVO // NIVEL: APRENDIZ</p>
+                                <div class="w-64 bg-gray-800 h-4 border border-gray-600"><div class="bg-gradient-to-r from-yellow-600 to-yellow-400 h-full shadow-[0_0_10px_#facc15]" style="width: ${p}%"></div></div>
+                                <p class="text-xs mt-2 text-cyan-500 font-mono">${currentUser.xp} / 1000 XP</p>
+                            </div>
+                            <img src="${currentUser.avatar}" onerror="this.src='https://ui-avatars.com/api/?name=${currentUser.nombre}'" class="w-24 h-24 rounded-full border-2 border-cyan-500 hidden md:block bg-black object-cover shadow-[0_0_15px_#05d9e8]">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div onclick="playSound('click'); router('ingles')" class="btn-card bg-gray-900 p-6 border border-blue-900 hover:border-blue-500 cursor-pointer group relative overflow-hidden h-40 flex flex-col justify-center">
+                            <div class="absolute inset-0 bg-blue-900/10 group-hover:bg-blue-900/20 transition"></div>
+                            <div class="relative z-10 flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-3xl font-black text-white mb-2 font-cyber">INGLÉS</h3>
+                                    <p class="text-sm text-blue-400 font-bold tracking-widest">VIDAS: ${currentUser.vidas.ingles} <i class="fas fa-heart"></i></p>
+                                </div>
+                                <i class="fas fa-flag-usa text-6xl text-blue-800 group-hover:text-blue-500 transition opacity-50"></i>
+                            </div>
+                        </div>
+                        <div onclick="playSound('click'); router('kichwa')" class="btn-card bg-gray-900 p-6 border border-yellow-900 hover:border-yellow-500 cursor-pointer group relative overflow-hidden h-40 flex flex-col justify-center">
+                            <div class="absolute inset-0 bg-yellow-900/10 group-hover:bg-yellow-900/20 transition"></div>
+                            <div class="relative z-10 flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-3xl font-black text-white mb-2 font-cyber">KICHWA</h3>
+                                    <p class="text-sm text-yellow-400 font-bold tracking-widest">VIDAS: ${currentUser.vidas.kichwa} <i class="fas fa-heart"></i></p>
+                                </div>
+                                <i class="fas fa-sun text-6xl text-yellow-800 group-hover:text-yellow-500 transition opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // --- INTRO ---
+        function renderIntroScreen(container, idioma) {
+            const data = contenido[idioma];
+            const color = idioma === 'ingles' ? 'blue' : 'yellow';
+            const neon = idioma === 'ingles' ? 'cyan' : 'yellow';
+            const introTitle = idioma === 'ingles' ? "¿ESTÁS PREPARADO?" : "¿CONOCES EL IDIOMA?";
+            const introIcon = idioma === 'ingles' ? "fa-flag-usa" : "fa-sun";
+
+            container.innerHTML = `
+                <div class="fade-in bg-black rounded-xl shadow-2xl overflow-hidden border border-${color}-900 text-center p-12 relative max-w-4xl mx-auto mt-8 neon-box">
+                    <button onclick="playSound('click'); router('home')" class="absolute top-6 left-6 text-gray-500 hover:text-white text-xl"><i class="fas fa-arrow-left"></i></button>
+                    
+                    <div class="w-24 h-24 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-gray-700">
+                        <i class="fas ${introIcon} text-5xl text-${color}-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black text-white mb-4 leading-tight font-cyber tracking-widest text-glow-${neon}">${introTitle}</h2>
+                    <p class="text-gray-400 text-lg mb-10 font-mono">SELECCIONA MÓDULO DE ENTRENAMIENTO</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        ${Object.entries(data.niveles).map(([key, nivel]) => `
+                            <button onclick="playSound('click'); startLevel('${idioma}', '${key}')" class="bg-gray-900 text-white font-bold text-lg py-6 border border-gray-700 hover:border-${color}-500 hover:bg-${color}-900/20 hover:shadow-[0_0_15px_rgba(0,0,0,0.5)] transition font-cyber tracking-wider uppercase clip-path-polygon">
+                                ${nivel.titulo}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- GAME LOGIC ---
+        function startLevel(idioma, nivelKey) {
+            const container = document.getElementById('app');
+            const nivel = contenido[idioma].niveles[nivelKey];
+            
+            // Check lives before starting
+            if(currentUser.vidas[idioma] <= 0) {
+                // Trigger game over modal directly
+                openGameOverModal();
+                return;
+            }
+
+            // Start music
+            startMusic();
+
+            currentLanguage = idioma;
+            currentLevelQuestions = nivel.ejercicios;
+            currentQuestionIndex = 0;
+            sessionMistakes = 0;
+            sessionCorrect = 0;
+
+            container.innerHTML = `<div id="game-card-container" class="max-w-3xl mx-auto mt-8"></div>`;
+            renderNextQuestion();
+        }
+
+        function renderNextQuestion() {
+            const container = document.getElementById('game-card-container');
+            
+            if(currentQuestionIndex >= currentLevelQuestions.length) {
+                stopMusic(); // Stop music when finished
+                showSummaryScreen();
+                return;
+            }
+
+            const ej = currentLevelQuestions[currentQuestionIndex];
+            const num = currentQuestionIndex + 1;
+            
+            let contentHTML = "";
+            
+            if(ej.tipo === "seleccion") {
+                const shapes = ['fa-play', 'fa-square', 'fa-circle', 'fa-diamond']; 
+                const colors = [
+                    'bg-red-900/40 border-red-600 hover:bg-red-600', 
+                    'bg-blue-900/40 border-blue-600 hover:bg-blue-600', 
+                    'bg-yellow-900/40 border-yellow-600 hover:bg-yellow-600 text-white', 
+                    'bg-green-900/40 border-green-600 hover:bg-green-600'
+                ];
+                
+                contentHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">${ej.opciones.map((op, idx) => 
+                    `<button id="btn-opt-${idx}" onclick="checkAnswer('${ej.id}', '${op.replace(/'/g, "\\'")}')" class="kahoot-btn h-24 border-2 ${colors[idx % 4]} text-white text-xl font-bold p-4 flex items-center justify-center gap-4 transition shadow-lg group">
+                        <i class="fas ${shapes[idx % 4]} text-2xl opacity-50 group-hover:opacity-100"></i>
+                        <span class="text-center w-full tracking-wide">${op}</span>
+                    </button>`
+                ).join('')}</div>`;
+            } else {
+                const words = ej.palabras.sort(() => Math.random() - 0.5);
+                contentHTML = `
+                <div class="mt-8" id="puzzle-${ej.id}">
+                    <div id="target-${ej.id}" class="puzzle-slot mb-6"></div>
+                    <div id="source-${ej.id}" class="flex flex-wrap gap-3 justify-center mb-6">
+                        ${words.map(w => `<button onclick="playSound('click'); moveWord('${ej.id}', '${w.replace(/'/g, "\\'")}', this)" class="word-chip shadow-md hover:scale-105">${w}</button>`).join('')}
+                    </div>
+                    <div class="flex justify-end gap-4">
+                        <button onclick="playSound('click'); resetPuzzle('${ej.id}')" class="text-gray-500 hover:text-white transition"><i class="fas fa-undo mr-2"></i> RESET</button>
+                        <button id="btn-check-puzzle" onclick="checkPuzzle('${ej.id}')" class="bg-green-600 text-white px-8 py-3 font-bold border border-green-400 hover:bg-green-500 hover:shadow-[0_0_15px_#22c55e] transition font-cyber tracking-widest clip-path-polygon">EJECUTAR</button>
+                    </div>
+                </div>`;
+            }
+
+            // AUTO-START COUNTDOWN OVERLAY
+            container.innerHTML = `
+                <div id="card-${ej.id}" class="fade-in bg-black p-8 border border-gray-800 relative shadow-2xl neon-box">
+                    <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+                        <span class="text-cyan-500 font-bold font-mono">SEQ: ${num} / 10</span>
+                        <button onclick="speak('${ej.audio.replace(/'/g, "\\'")}')" class="text-gray-400 hover:text-cyan-400 text-2xl transition"><i class="fas fa-volume-up"></i></button>
+                    </div>
+                    
+                    <h3 class="text-3xl font-bold text-white mb-8 text-center leading-tight tracking-wide font-cyber">${ej.pregunta}</h3>
+                    
+                    <!-- Auto-Countdown Overlay -->
+                    <div id="start-overlay-${ej.id}" class="absolute inset-0 bg-black/95 z-20 flex flex-col items-center justify-center">
+                        <p class="text-cyan-500 font-cyber tracking-widest mb-4">INICIANDO SECUENCIA</p>
+                        <div id="countdown-display-${ej.id}" class="text-8xl font-black text-white animate-pulse">5</div>
+                    </div>
+
+                    <!-- Game Area -->
+                    <div id="game-area-${ej.id}" class="opacity-0 transition-opacity duration-500">
+                        <div class="w-full bg-gray-900 h-2 mb-6 overflow-hidden border border-gray-700">
+                            <div id="timer-${ej.id}" class="bg-cyan-500 h-2 timer-bar shadow-[0_0_10px_#05d9e8]" style="width: 100%"></div>
+                        </div>
+                        ${contentHTML}
+                    </div>
+                </div>
+            `;
+            
+            // Start the auto-countdown immediately after rendering
+            initCountdown(ej.id, currentLanguage);
+        }
+
+        // --- COUNTDOWN & TIMER LOGIC ---
+        function initCountdown(id, idioma) {
+            let count = 5;
+            const display = document.getElementById(`countdown-display-${id}`);
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if(display) display.innerText = count;
+                
+                if (count <= 0) {
+                    clearInterval(countInterval);
+                    // Hide overlay
+                    const overlay = document.getElementById(`start-overlay-${id}`);
+                    if(overlay) overlay.classList.add('hidden');
+                    // Show game area
+                    const area = document.getElementById(`game-area-${id}`);
+                    if(area) area.classList.remove('opacity-0');
+                    // Start game timer
+                    startQuestionTimer(id);
+                }
+            }, 1000);
+            
+            // Store interval to clear if needed (e.g. user quits)
+            timerState[id] = { countdownInterval: countInterval };
+        }
+
+        function startQuestionTimer(id) {
+            const bar = document.getElementById(`timer-${id}`);
+            if(!bar) return; // Guard clause
+            
+            let timeLeft = 15;
+            
+            // Reuse timerState entry
+            if (!timerState[id]) timerState[id] = {};
+            
+            timerState[id].gameInterval = setInterval(() => {
+                timeLeft--;
+                const pct = (timeLeft / 15) * 100;
+                bar.style.width = `${pct}%`;
+                
+                if(timeLeft < 5) bar.className = "bg-red-500 h-2 timer-bar shadow-[0_0_10px_red]";
+                else if(timeLeft < 10) bar.className = "bg-yellow-500 h-2 timer-bar";
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerState[id].gameInterval);
+                    // Time's up -> Fail
+                    // Disable interactions
+                    const puz = document.getElementById(`puzzle-${id}`);
+                    if(puz) puz.style.pointerEvents = 'none';
+                    const btns = document.querySelectorAll(`#card-${id} button`);
+                    btns.forEach(b => b.disabled = true);
+                    
+                    handleFail();
+                }
+            }, 1000);
+        }
+
+        function stopQuestionTimer(id) {
+            if (timerState[id] && timerState[id].gameInterval) {
+                clearInterval(timerState[id].gameInterval);
+            }
+        }
+
+        function checkAnswer(id, selection) {
+            stopQuestionTimer(id);
+            // Disable buttons to prevent double clicks
+            const buttons = document.querySelectorAll('.kahoot-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const question = currentLevelQuestions.find(q => q.id === id);
+            if(selection === question.respuesta) handleSuccess(); 
+            else handleFail();
+        }
+
+        function checkPuzzle(id) {
+            const btn = document.getElementById('btn-check-puzzle');
+            if(btn) btn.disabled = true;
+
+            const userText = Array.from(document.getElementById(`target-${id}`).children).map(c=>c.innerText).join(" ");
+            
+            const question = currentLevelQuestions.find(q => q.id === id);
+            if(userText === question.respuesta) {
+                stopQuestionTimer(id);
+                handleSuccess();
+            } else {
+                stopQuestionTimer(id);
+                const target = document.getElementById(`target-${id}`);
+                target.classList.add('wrong');
+                setTimeout(() => target.classList.remove('wrong'), 500);
+                handleFail();
+            }
+        }
+
+        function handleSuccess() {
+            playSound('correct');
+            sessionCorrect++;
+            currentUser.xp += 15; 
+            currentUser.monedas += 10;
+            saveUsers(); updateUI();
+            checkMedals();
+            
+            document.getElementById('diamond-xp-text').innerText = `+15 XP`;
+            document.getElementById('diamond-modal').classList.add('active');
+            confetti({particleCount:150, spread:100, origin:{y:0.6}, colors:['#05d9e8', '#ff2a6d']});
+        }
+
+        function closeDiamondModal() {
+            playSound('click');
+            document.getElementById('diamond-modal').classList.remove('active');
+            currentQuestionIndex++;
+            renderNextQuestion();
+        }
+
+        function handleFail() {
+            playSound('wrong');
+            sessionMistakes++;
+            
+            if (currentUser.vidas[currentLanguage] > 0) {
+                currentUser.vidas[currentLanguage] -= 1;
+                saveUsers(); 
+                updateUI();
+            }
+            
+            if(currentUser.vidas[currentLanguage] <= 0) {
+                stopMusic(); // Stop music on failure
+                playSound('gameover');
+                openGameOverModal();
+            } else {
+                // Regular fail with lives remaining
+                document.getElementById('error-modal-title').innerText = "¡Oh no!";
+                document.getElementById('error-modal-desc').innerText = "Perdiste 1 vida";
+                document.getElementById('error-modal').classList.add('active');
+            }
+        }
+
+        function openGameOverModal() {
+            document.getElementById('error-modal').classList.remove('active');
+            document.getElementById('game-over-modal').classList.add('active');
+        }
+
+        function openShopFromGameOver() {
+            closeModal('game-over-modal');
+            openShop();
+        }
+
+        function retryCurrentQuestion() {
+            playSound('click');
+            document.getElementById('error-modal').classList.remove('active');
+            // Restart the SAME question (index not incremented)
+            renderNextQuestion();
+        }
+
+        function showSummaryScreen() {
+            const m = document.getElementById('summary-modal');
+            document.getElementById('summary-correct').innerText = sessionCorrect;
+            document.getElementById('summary-mistakes').innerText = sessionMistakes;
+            m.classList.add('active');
+            confetti({particleCount:300, spread:150, colors:['#ffd700']});
+        }
+
+        function finishLevel() {
+            playSound('click');
+            document.getElementById('summary-modal').classList.remove('active');
+            currentUser.progreso[currentLanguage] = Math.min(currentUser.progreso[currentLanguage] + 10, 100);
+            saveUsers();
+            router('home');
+        }
+
+        function moveWord(id, w, btn) {
+            const t = document.getElementById(`target-${id}`);
+            const c = document.createElement('span'); 
+            c.className="word-chip m-1 inline-block animate-pop shadow-[0_0_5px_rgba(255,255,255,0.3)]"; 
+            c.innerText=w; 
+            c.onclick=function(){playSound('click'); this.remove(); btn.classList.remove('used'); btn.disabled=false;}; 
+            t.appendChild(c);
+            btn.classList.add('used'); btn.disabled=true;
+        }
+        function resetPuzzle(id){ 
+            document.getElementById(`target-${id}`).innerHTML=""; 
+            document.querySelectorAll(`#source-${id} button`).forEach(b=>{b.classList.remove('used'); b.disabled=false;}); 
+        }
+
+        function checkMedals() {
+            const earned = [];
+            if(currentUser.xp >= 500) earned.push('scholar');
+            earned.forEach(mId => {
+                if(!currentUser.medallas.includes(mId)) {
+                    currentUser.medallas.push(mId);
+                    showMedalUnlockModal(MEDALLAS_DATA.find(m => m.id == mId));
+                }
+            });
+        }
+        function showMedalUnlockModal(medal) {
+            if(!medal) return;
+            const modal = document.getElementById('medal-unlock-modal');
+            document.getElementById('new-medal-icon').innerHTML = `<i class="fas ${medal.icon} ${medal.color}"></i>`;
+            document.getElementById('new-medal-title').innerText = medal.title;
+            document.getElementById('new-medal-desc').innerText = medal.desc;
+            modal.classList.remove('hidden');
+            confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+            speak("¡Felicidades! Medalla desbloqueada.");
+        }
+        function openMedalsModal() {
+            const grid = document.getElementById('medals-grid'); grid.innerHTML = '';
+            MEDALLAS_DATA.forEach(m => {
+                const unlocked = currentUser.medallas.includes(m.id);
+                grid.innerHTML += `<div class="flex flex-col items-center p-4 bg-black/50 rounded border ${unlocked ? 'border-yellow-500/50 bg-yellow-900/10' : 'border-gray-800 grayscale opacity-30'}"><div class="w-16 h-16 rounded-full bg-black flex items-center justify-center shadow-md mb-2 text-3xl ${m.color} border border-gray-700"><i class="fas ${m.icon}"></i></div><h4 class="font-bold text-gray-200 text-sm text-center mb-1 font-cyber">${m.title}</h4><p class="text-[10px] text-gray-500 text-center leading-tight">${m.desc}</p></div>`;
+            });
+            document.getElementById('medals-modal').classList.add('active');
+        }
+        function openShop() { document.getElementById('shop-modal').classList.add('active'); }
+        function closeModal(id) { 
+            const el = document.getElementById(id);
+            if(el) { el.classList.remove('active'); if(id === 'medal-unlock-modal') el.classList.add('hidden'); }
+        }
+        
+        function buyLives(idioma) {
+            if(currentUser.monedas >= 50) {
+                if(currentUser.vidas[idioma] >= 5) { alert("¡Vidas llenas!"); return; }
+                
+                // Perform purchase
+                currentUser.vidas[idioma] = 5; 
+                currentUser.monedas -= 50; 
+                saveUsers(); 
+                updateUI(); 
+                
+                // Play sound
+                playSound('restore');
+                closeModal('shop-modal');
+
+                // Check if we are currently inside a level (not home, and there are questions loaded)
+                if (currentSection !== 'home' && currentLevelQuestions.length > 0) {
+                    // Resume Music if inside level
+                    startMusic();
+
+                    // If we are in-game, we want to allow the user to continue immediately.
+                    // We show the error-modal but change the text to indicate restoration.
+                    const errorModal = document.getElementById('error-modal');
+                    const errorTitle = document.getElementById('error-modal-title');
+                    const errorDesc = document.getElementById('error-modal-desc');
+
+                    errorTitle.innerText = "SISTEMA RESTAURADO";
+                    errorDesc.innerText = "Vidas recargadas al 100%";
+                    errorTitle.className = "text-3xl font-black text-green-500 mb-2 font-cyber"; // Change to green
+                    
+                    // Show the modal so they can click "REINTENTAR"
+                    errorModal.classList.add('active');
+                    
+                    // Reset styling after a delay or just leave it for this instance
+                    // (The handleFail function resets it to red/Oh No anyway)
+                } else {
+                    alert("¡Vidas recargadas!");
+                }
+            } else {
+                alert("Faltan monedas");
+            }
+        }
+        
+        function speak(t) { if('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(t)); }
+        function openFeedbackModal() { document.getElementById('feedback-modal').classList.add('active'); }
+        function openProfile() { alert(`Perfil: ${currentUser.nombre}\nXP: ${currentUser.xp}`); }
+
+    </script>
+</body>
+</html>
